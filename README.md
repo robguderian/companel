@@ -2,6 +2,10 @@
 Rasperry pi communication panel for my boy. Uses a n by n LED array,
 reassigning the lights as buttons are mashed.
 
+## Prerequisites
+
+- curses (apt-get install libncurses5-dev)
+
 
 ## Project Goals
 

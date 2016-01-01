@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <wiringPi.h>
 
+// for reading from stdin non-blocking
+#include <curses.h>
 
 // stuff for randomization
 #include <time.h>
@@ -118,6 +120,10 @@ int main(void) {
 
     wiringPiSetup();
     init(pattern);
+    WINDOW *w = initscr();
+    cbreak();
+    nodelay(w, TRUE);
+
     printf("Starto\n");
     // do some interesting startup sequence
     for (uint8_t i = 0; i < 10; i++) {
@@ -128,7 +134,7 @@ int main(void) {
     // show the pattern
     // change on key input
     while (1) {
-        if (changeInterval < time(NULL) - lastchange)
+        if (changeInterval < time(NULL) - lastchange || getch() > 0)
         {
             printf("Randomizing\n");
             randomize(pattern);
@@ -136,6 +142,7 @@ int main(void) {
         }
         draw(pattern);
     }
-
+    // we can't get here... but for completeness.
+    endwin();
     return 0;
 }
