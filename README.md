@@ -1,5 +1,5 @@
 # The boy's Com Panel
-Rasperry pi communication panel for my boy. Uses a n by n LED array,
+Rasperry pi communication panel for my boy. Uses a n by m LED array,
 reassigning the lights as buttons are mashed.
 
 
