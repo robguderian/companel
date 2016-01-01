@@ -62,9 +62,11 @@ void iterate(){
 }
 
 int main(void) {
+    // pattern array - use stack-based array, pass by reference
+    // Set a default pattern
+    uint8_t pattern[numrows][numcols];
     wiringPiSetup();
-    // TODO: Set a default pattern
-    init();
+    init(pattern);
     printf("Starto\n");
     // do some interesting startup sequence
     while (1) {

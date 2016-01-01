@@ -30,3 +30,7 @@
 
 # Debug files
 *.dSYM/
+
+
+# output (could/should be put in an obj folder)
+blink
