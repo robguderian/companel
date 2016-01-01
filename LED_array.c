@@ -2,15 +2,30 @@
 #include <stdio.h>
 #include <wiringPi.h>
 
+
+// stuff for randomization
+#include <time.h>
+#include <stdlib.h>
+
 #define numrows 2
 #define numcols 2
+
+// nice output to console, but slows the LED refresh
+// set to 1 for output, 0 for no output
+#define DEBUG 0
+
+// change interval in seconds
+#define changeInterval 10
 
 // assign the gpio pins - basically a mapping
 uint8_t row_pins[numrows]    = { 0, 1};
 uint8_t column_pins[numcols] = { 2, 3};
 
 
-static void init(void) {
+static void init(uint8_t pattern[numrows][numcols]) {
+
+    // seed random generator
+    srand(time(NULL));
 
     /* Turn all columns off by setting then low. */
     for (uint8_t x=0; x<numcols; x++) {
@@ -23,24 +38,43 @@ static void init(void) {
         pinMode(row_pins[y], OUTPUT);
         digitalWrite(row_pins[y], LOW);
     }
+
+    // create a default pattern
+    for (uint8_t row=0; row<numrows; ++row)
+        for (uint8_t column=0; column<numcols; ++column)
+            pattern[row][column] = 1; 
 }
 
-void draw(uint8_t buffer[numrows][numcols], unsigned int delaytime) {
+void draw(uint8_t buffer[numrows][numcols]) {
+    /* draw the pattern on the LEDs, and to console */
 
     for (uint8_t row=0; row<numrows; ++row) {
         /* Connect or disconnect columns as needed. */
         for (uint8_t column=0; column<numcols; ++column) {
-            digitalWrite(column_pins[column], buffer[row][column]);
+            // could be optimized. Written for clarity
+            // the LEDs are lit when the column is grounded, that is
+            // LOW is written to them.
+            if (buffer[row][column] == 1)
+                digitalWrite(column_pins[column], LOW);
+            else
+                digitalWrite(column_pins[column], HIGH);
+            // could be change to #ifdef
+            if (DEBUG)
+                printf("%d", buffer[row][column]);
         }
+        if (DEBUG)
+            printf("\n");
 
         /* Turn on whole row. */
         digitalWrite(row_pins[row], HIGH);
 
-        delay(100);
+        delay(10);
 
         /* Turn off whole row. */
         digitalWrite(row_pins[row], LOW);
     }
+    if (DEBUG)
+        printf("\n");
 }
 
 void iterate(){
@@ -52,7 +86,7 @@ void iterate(){
             digitalWrite(row_pins[row], HIGH);
             digitalWrite(column_pins[col], LOW);
             printf("%d:%d\n", row, col);
-            delay(5000);
+            delay(100);
             // reset
             digitalWrite(row_pins[row], LOW);
             digitalWrite(column_pins[col], HIGH);
@@ -61,21 +95,47 @@ void iterate(){
     }
 }
 
+void randomize(uint8_t pattern[numrows][numcols]) {
+    // change the pattern we want to show
+    for (uint8_t row=0; row<numrows; ++row) {
+        for (uint8_t column=0; column<numcols; ++column) {
+            // rand() returns number between 0 and RAND_MAX
+            // mod 2 will give us a 0 (off) or 1 (on)
+            pattern[row][column] = (uint8_t)rand()%2;
+        }
+    }
+}
+
+
 int main(void) {
     // pattern array - use stack-based array, pass by reference
     // Set a default pattern
     uint8_t pattern[numrows][numcols];
+
+    // time holder. Change random pattern every so often
+    time_t lastchange = 0;
+
+
     wiringPiSetup();
     init(pattern);
     printf("Starto\n");
     // do some interesting startup sequence
-    while (1) {
+    for (uint8_t i = 0; i < 10; i++) {
         iterate();
     }
 
 
     // show the pattern
     // change on key input
+    while (1) {
+        if (changeInterval < time(NULL) - lastchange)
+        {
+            printf("Randomizing\n");
+            randomize(pattern);
+            lastchange = time(NULL);
+        }
+        draw(pattern);
+    }
 
     return 0;
 }
