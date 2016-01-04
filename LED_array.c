@@ -18,7 +18,7 @@
 
 // change interval in seconds
 #define changeInterval 10
-#define debounceInterval 1
+#define debounceInterval 5
 
 // assign the gpio pins - basically a mapping
 uint8_t row_pins[numrows]    = { 0, 1};
@@ -134,13 +134,16 @@ int main(void) {
 
     // show the pattern
     // change on key input
+    int count = 0;
     while (1) {
-        if (changeInterval < time(NULL) - lastchange || (getch() > 0 && debounceInterval < time(NULL) - lastchange))
+        if (changeInterval < time(NULL) - lastchange || (getch() > 0 && debounceInterval < count))
         {
             printf("Randomizing\n");
             randomize(pattern);
             lastchange = time(NULL);
+            count = 0;
         }
+        count++;
         draw(pattern);
     }
     // we can't get here... but for completeness.
