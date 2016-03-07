@@ -9,20 +9,20 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define numrows 2
-#define numcols 2
+#define numrows 8
+#define numcols 5
 
 // nice output to console, but slows the LED refresh
 // set to 1 for output, 0 for no output
 #define DEBUG 0
 
 // change interval in seconds
-#define changeInterval 10
+#define changeInterval 5
 #define debounceInterval 5
 
 // assign the gpio pins - basically a mapping
-uint8_t row_pins[numrows]    = { 0, 1};
-uint8_t column_pins[numcols] = { 2, 3};
+uint8_t row_pins[numrows]    = { 3, 5, 7, 8, 10, 11, 12, 13};
+uint8_t column_pins[numcols] = { 15, 16, 18, 19, 21};
 
 
 static void init(uint8_t pattern[numrows][numcols]) {
@@ -71,7 +71,7 @@ void draw(uint8_t buffer[numrows][numcols]) {
         /* Turn on whole row. */
         digitalWrite(row_pins[row], HIGH);
 
-        delay(10);
+        delay(1);
 
         /* Turn off whole row. */
         digitalWrite(row_pins[row], LOW);
@@ -119,7 +119,7 @@ int main(void) {
     time_t lastchange = 0;
 
 
-    wiringPiSetup();
+    wiringPiSetupPhys();
     init(pattern);
     WINDOW *w = initscr();
     cbreak();
