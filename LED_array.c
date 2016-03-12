@@ -10,19 +10,19 @@
 #include <stdlib.h>
 
 #define numrows 8
-#define numcols 5
+#define numcols 18
 
 // nice output to console, but slows the LED refresh
 // set to 1 for output, 0 for no output
 #define DEBUG 0
 
 // change interval in seconds
-#define changeInterval 5
+#define changeInterval 1
 #define debounceInterval 5
 
 // assign the gpio pins - basically a mapping
 uint8_t row_pins[numrows]    = { 3, 5, 7, 8, 10, 11, 12, 13};
-uint8_t column_pins[numcols] = { 15, 16, 18, 19, 21};
+uint8_t column_pins[numcols] = { 15, 18, 16, 19, 23, 24, 21, 22, 26, 29, 31, 32, 33, 35, 36, 37, 38, 40};
 
 
 static void init(uint8_t pattern[numrows][numcols]) {
@@ -61,12 +61,7 @@ void draw(uint8_t buffer[numrows][numcols]) {
                 digitalWrite(column_pins[column], LOW);
             else
                 digitalWrite(column_pins[column], HIGH);
-            // could be change to #ifdef
-            if (DEBUG)
-                printf("%d", buffer[row][column]);
         }
-        if (DEBUG)
-            printf("\n");
 
         /* Turn on whole row. */
         digitalWrite(row_pins[row], HIGH);
@@ -80,6 +75,31 @@ void draw(uint8_t buffer[numrows][numcols]) {
         printf("\n");
 }
 
+void cylon(){
+    printf("cylon!\n");
+    for (uint8_t col = 0; col < numcols; col++)
+        digitalWrite(column_pins[col], HIGH);
+    for (uint8_t row = 0; row < numrows; row++)
+        digitalWrite(row_pins[row], HIGH);
+    for (uint8_t col = 0; col < numcols; col++)
+    {
+        digitalWrite(column_pins[col], LOW);
+        printf("%d\n", col);
+        delay(100);
+        // reset
+        digitalWrite(column_pins[col], HIGH);
+    }
+    for (int col = numcols - 1; col >=0 ; col--)
+    {
+        digitalWrite(column_pins[col], LOW);
+        printf("%d\n", col);
+        delay(100);
+        // reset
+        digitalWrite(column_pins[col], HIGH);
+    }
+
+}
+
 void iterate(){
     for (uint8_t row = 0; row < numrows; row++)
     {
@@ -89,7 +109,7 @@ void iterate(){
             digitalWrite(row_pins[row], HIGH);
             digitalWrite(column_pins[col], LOW);
             printf("%d:%d\n", row, col);
-            delay(100);
+            delay(10);
             // reset
             digitalWrite(row_pins[row], LOW);
             digitalWrite(column_pins[col], HIGH);
@@ -121,15 +141,16 @@ int main(void) {
 
     wiringPiSetupPhys();
     init(pattern);
-    WINDOW *w = initscr();
+    //WINDOW *w = initscr();
     cbreak();
-    nodelay(w, TRUE);
+    //nodelay(w, TRUE);
 
     printf("Starto\n");
     // do some interesting startup sequence
-    for (uint8_t i = 0; i < 10; i++) {
+    for (int i = 0; i < 3; i++) 
         iterate();
-    }
+    for (int i = 0; i < 2; i++) 
+        cylon();
 
 
     // show the pattern
@@ -139,7 +160,13 @@ int main(void) {
         if (changeInterval < time(NULL) - lastchange || (getch() > 0 && debounceInterval < count))
         {
             printf("Randomizing\n");
-            randomize(pattern);
+            uint8_t rando = (uint8_t)rand()%100;
+            if (rando < 5)
+                cylon();
+            else if (rando < 10)
+                iterate();
+            else
+                randomize(pattern);
             lastchange = time(NULL);
             count = 0;
         }
